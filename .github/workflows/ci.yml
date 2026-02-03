@@ -1,0 +1,62 @@
+name: fast api exercises integration tests
+
+
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+
+jobs:
+  test-suite:
+    
+    runs-on: ubuntu-latest
+
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          
+          pip install -r requirements.txt
+
+      - name: Run Pytest
+        env:
+          
+          DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/test_db
+        run: |
+          pytest
+          
+      - name: Lint and Format with Ruff
+        run: |
+          # Check for errors and fixable PEP8 violations
+          ruff check . 
+          # Check that the code is formatted correctly
+          ruff format --check .
