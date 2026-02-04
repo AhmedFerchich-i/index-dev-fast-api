@@ -1,2 +1,2 @@
-def place_holder_test():
+def test_place_holder():
     assert True
